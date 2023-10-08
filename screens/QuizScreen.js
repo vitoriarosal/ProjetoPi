@@ -62,7 +62,15 @@ const QuizScreen = () => {
           imageUrl: 'https://18854.cdn.simplo7.net/static/18854/sku/quadros-e-placas-decorativas-filmes-quadro-ou-placa-decorativa-harry-potter-sonserina--p-1569604280472.jpg',
         };
 
-        setQuestions([...quizQuestions, kissQuestion, brotherQuestion, brotherQuestion2]);
+        // Adicione a nova pergunta "Hermione possuía uma mente acadêmica brilhante e se provou uma estudante talentosa, a ponto de ser considerada à Casa Corvinal.?"
+        const brotherQuestion3 = {
+          question: 'Hermione possuía uma mente acadêmica brilhante e se provou uma estudante talentosa, a ponto de ser considerada à Casa Corvinal.?',
+          options: ['Verdadeira', 'Falsa'],
+          correctAnswer: 'Verdadeira',
+          imageUrl: 'https://rollingstone.uol.com.br/media/_versions/emma_watson_como_hermione_em_pedra_filosofal_reprod_warner_widelg.jpg',
+        };
+
+        setQuestions([...quizQuestions, kissQuestion, brotherQuestion, brotherQuestion2, brotherQuestion3]);
         setLoading(false);
       } catch (error) {
         console.error('Erro ao buscar perguntas:', error);
@@ -78,8 +86,10 @@ const QuizScreen = () => {
     if (selectedAnswer === currentQuestion.correctAnswer) {
       setScore(score + 1);
       setShowSuccess(true);
+      setShowError(false);
     } else {
       setShowError(true);
+      setShowSuccess(false);
     }
 
     if (questionIndex + 1 < questions.length) {
@@ -127,7 +137,7 @@ const QuizScreen = () => {
           <TouchableOpacity
             key={index}
             onPress={() => handleAnswer(option)}
-            style={option === 'Falsa' ? styles.falseButton : styles.trueButton}
+            style={styles.optionButton} // Use um estilo comum para ambos os botões
           >
             <Text style={styles.optionButtonText}>{option}</Text>
           </TouchableOpacity>
@@ -190,24 +200,12 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     marginBottom: 10,
-    backgroundColor: '#DDDDDD', // Cor de fundo padrão
+    backgroundColor: '#DDDDDD', // Cor de fundo padrão (cinza)
     padding: 10,
     borderRadius: 8,
   },
   optionButtonText: {
     fontSize: 16,
-  },
-  falseButton: {
-    marginBottom: 10,
-    backgroundColor: 'red', // Cor de fundo vermelha
-    padding: 10,
-    borderRadius: 8,
-  },
-  trueButton: {
-    marginBottom: 10,
-    backgroundColor: 'blue', // Cor de fundo azul
-    padding: 10,
-    borderRadius: 8,
   },
   scoreButton: {
     backgroundColor: '#FF4081',
