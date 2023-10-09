@@ -1,4 +1,3 @@
-// src/screens/QuizScreen.js
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -137,7 +136,7 @@ const QuizScreen = () => {
           <TouchableOpacity
             key={index}
             onPress={() => handleAnswer(option)}
-            style={styles.optionButton} // Use um estilo comum para ambos os botões
+            style={styles.optionButton}
           >
             <Text style={styles.optionButtonText}>{option}</Text>
           </TouchableOpacity>
@@ -161,18 +160,10 @@ const QuizScreen = () => {
           <Text style={styles.finishText}>
             Quiz finalizado! Você acertou {score} pergunta(s).
           </Text>
-          <Text style={styles.finishText}>
-            {score < 2 ? 'Você não é um fã de carteirinha.' : 'Você é um fã de carteirinha!'}
-          </Text>
           <TouchableOpacity onPress={handleShowResult} style={styles.finishButton}>
             <Text style={styles.finishButtonText}>Ver Resultado</Text>
           </TouchableOpacity>
         </View>
-      )}
-      {!quizFinished && (
-        <TouchableOpacity onPress={handleShowResult} style={styles.scoreButton}>
-          <Text style={styles.scoreButtonText}>Pontuação: {score}</Text>
-        </TouchableOpacity>
       )}
     </View>
   );
@@ -200,21 +191,11 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     marginBottom: 10,
-    backgroundColor: '#DDDDDD', // Cor de fundo padrão (cinza)
+    backgroundColor: '#DDDDDD',
     padding: 10,
     borderRadius: 8,
   },
   optionButtonText: {
-    fontSize: 16,
-  },
-  scoreButton: {
-    backgroundColor: '#FF4081',
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 20,
-  },
-  scoreButtonText: {
-    color: 'white',
     fontSize: 16,
   },
   errorContainer: {
@@ -224,7 +205,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 18,
     marginBottom: 10,
-    color: 'red', // Cor do texto vermelha
+    color: 'red',
   },
   nextButton: {
     backgroundColor: '#4CAF50',
@@ -241,7 +222,7 @@ const styles = StyleSheet.create({
   },
   successText: {
     fontSize: 18,
-    color: 'blue', // Cor do texto azul
+    color: 'blue',
   },
   finishContainer: {
     marginTop: 20,
