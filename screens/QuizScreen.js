@@ -14,11 +14,46 @@ const QuizScreen = () => {
 
   const navigation = useNavigation();
 
+  const shuffleArray = (array) => {
+    const shuffledArray = [...array];
+    for (let i = shuffledArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
+    }
+    return shuffledArray;
+  };
+
+  const getSpellQuestion = async () => {
+    try {
+      const response = await axios.get('https://hp-api.onrender.com/api/spells');
+      const spells = response.data;
+
+      const randomSpell = spells[Math.floor(Math.random() * spells.length)];
+      const incorrectOptions = spells
+        .filter((spell) => spell.spell !== randomSpell.spell)
+        .slice(0, 3)
+        .map((spell) => spell.spell);
+
+      const options = [randomSpell.spell, ...incorrectOptions];
+      const shuffledOptions = shuffleArray(options);
+
+      return {
+        question: `Qual destes feitiços é usado para ${randomSpell.effect || 'alguma coisa'}?`,
+        options: shuffledOptions,
+        correctAnswer: randomSpell.spell,
+        imageUrl: randomSpell.type,
+      };
+    } catch (error) {
+      console.error('Erro ao buscar pergunta do feitiço:', error);
+      return {};
+    }
+  };
+
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const response = await axios.get('https://hp-api.onrender.com/api/characters');
-        const characters = response.data.slice(0, 4);
+        const charactersResponse = await axios.get('https://hp-api.onrender.com/api/characters');
+        const characters = charactersResponse.data.slice(0, 4);
 
         const quizQuestions = characters.map((character, index) => {
           const incorrectOptions = characters
@@ -37,39 +72,23 @@ const QuizScreen = () => {
           };
         });
 
-        // Adicione a nova pergunta "Harry e Hermione se beijaram nos filmes?"
-        const kissQuestion = {
-          question: 'Harry e Hermione se beijaram nos filmes?',
-          options: ['Verdadeira', 'Falsa'],
-          correctAnswer: 'Falsa',
-          imageUrl: 'https://pbs.twimg.com/media/EloZGAkXIAU4fc5.jpg',
+        const apiQuestion1 = {
+          question: 'Quem é conhecido por sua habilidade em transfiguração?',
+          options: ['Harry Potter', 'Minerva McGonagall', 'Rubeus Hagrid', 'Gilderoy Lockhart'],
+          correctAnswer: 'Minerva McGonagall',
+          imageUrl: 'https://example.com/image5.jpg',
         };
 
-        // Adicione a nova pergunta "Draco tem um irmão gêmeo?"
-        const brotherQuestion = {
-          question: 'Draco tem um irmão gêmeo?',
-          options: ['Verdadeira', 'Falsa'],
-          correctAnswer: 'Falsa',
-          imageUrl: 'https://i.pinimg.com/originals/2c/f8/19/2cf8190c62b3027bed25741e5b3b8e69.jpg',
+        const apiQuestion2 = {
+          question: 'Qual destes personagens tem uma varinha de sabugueiro?',
+          options: ['Hermione Granger', 'Ron Weasley', 'Draco Malfoy', 'Neville Longbottom'],
+          correctAnswer: 'Ron Weasley',
+          imageUrl: 'https://example.com/image6.jpg',
         };
 
-        // Adicione a nova pergunta "Harry é da casa sonserina?"
-        const brotherQuestion2 = {
-          question: 'Harry é da casa sonserina?',
-          options: ['Verdadeira', 'Falsa'],
-          correctAnswer: 'Falsa',
-          imageUrl: 'https://18854.cdn.simplo7.net/static/18854/sku/quadros-e-placas-decorativas-filmes-quadro-ou-placa-decorativa-harry-potter-sonserina--p-1569604280472.jpg',
-        };
+        const spellQuestion = await getSpellQuestion();
 
-        // Adicione a nova pergunta "Hermione possuía uma mente acadêmica brilhante e se provou uma estudante talentosa, a ponto de ser considerada à Casa Corvinal.?"
-        const brotherQuestion3 = {
-          question: 'Hermione possuía uma mente acadêmica brilhante e se provou uma estudante talentosa, a ponto de ser considerada à Casa Corvinal.?',
-          options: ['Verdadeira', 'Falsa'],
-          correctAnswer: 'Verdadeira',
-          imageUrl: 'https://rollingstone.uol.com.br/media/_versions/emma_watson_como_hermione_em_pedra_filosofal_reprod_warner_widelg.jpg',
-        };
-
-        setQuestions([...quizQuestions, kissQuestion, brotherQuestion, brotherQuestion2, brotherQuestion3]);
+        setQuestions([...quizQuestions, apiQuestion1, apiQuestion2, spellQuestion]);
         setLoading(false);
       } catch (error) {
         console.error('Erro ao buscar perguntas:', error);
@@ -242,14 +261,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-const shuffleArray = (array) => {
-  const shuffledArray = [...array];
-  for (let i = shuffledArray.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
-  }
-  return shuffledArray;
-};
 
 export default QuizScreen;
