@@ -72,23 +72,9 @@ const QuizScreen = () => {
           };
         });
 
-        const apiQuestion1 = {
-          question: 'Quem é conhecido por sua habilidade em transfiguração?',
-          options: ['Harry Potter', 'Minerva McGonagall', 'Rubeus Hagrid', 'Gilderoy Lockhart'],
-          correctAnswer: 'Minerva McGonagall',
-          imageUrl: 'https://example.com/image5.jpg',
-        };
-
-        const apiQuestion2 = {
-          question: 'Qual destes personagens tem uma varinha de sabugueiro?',
-          options: ['Hermione Granger', 'Ron Weasley', 'Draco Malfoy', 'Neville Longbottom'],
-          correctAnswer: 'Ron Weasley',
-          imageUrl: 'https://example.com/image6.jpg',
-        };
-
         const spellQuestion = await getSpellQuestion();
 
-        setQuestions([...quizQuestions, apiQuestion1, apiQuestion2, spellQuestion]);
+        setQuestions([...quizQuestions, spellQuestion]);
         setLoading(false);
       } catch (error) {
         console.error('Erro ao buscar perguntas:', error);
