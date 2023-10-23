@@ -23,35 +23,10 @@ const QuizScreen = () => {
     return shuffledArray;
   };
 
-  const getSpellQuestion = async () => {
-    try {
-      const response = await axios.get('https://hp-api.onrender.com/api/spells');
-      const spells = response.data;
-
-      const randomSpell = spells[Math.floor(Math.random() * spells.length)];
-      const incorrectOptions = spells
-        .filter((spell) => spell.spell !== randomSpell.spell)
-        .slice(0, 3)
-        .map((spell) => spell.spell);
-
-      const options = [randomSpell.spell, ...incorrectOptions];
-      const shuffledOptions = shuffleArray(options);
-
-      return {
-        question: `Qual destes feitiços é usado para ${randomSpell.effect || 'alguma coisa'}?`,
-        options: shuffledOptions,
-        correctAnswer: randomSpell.spell,
-        imageUrl: randomSpell.type,
-      };
-    } catch (error) {
-      console.error('Erro ao buscar pergunta do feitiço:', error);
-      return {};
-    }
-  };
-
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
+        // API de personagens
         const charactersResponse = await axios.get('https://hp-api.onrender.com/api/characters');
         const characters = charactersResponse.data.slice(0, 4);
 
@@ -72,9 +47,41 @@ const QuizScreen = () => {
           };
         });
 
-        const spellQuestion = await getSpellQuestion();
+        // API de feitiços
+        const spellsResponse = await axios.get('https://hp-api.onrender.com/api/spells');
+        const spells = spellsResponse.data.slice(0, 4);
 
-        setQuestions([...quizQuestions, spellQuestion]);
+        // Pergunta sobre feitiços 1
+        const wrongOptionsSpell1 = spells.filter((f) => f.name !== 'Aberto').slice(0, 3).map((f) => f.name);
+        const spellQuestion1 = {
+          question: 'Qual feitiço abre portas trancadas?',
+          options: ([
+            'Aberto', // Opção correta
+            ...wrongOptionsSpell1]),
+          correctAnswer: 'Aberto',
+          imageUrl: spells[0]?.type,
+        };
+
+        // Pergunta sobre feitiços 2
+        const wrongOptionsSpell2 = spells.filter((f) => f.name !== 'Crinus Muto').slice(0, 3).map((f) => f.name);
+        const spellQuestion2 = {
+          question: 'Qual feitiço muda o cabelo e o estilo?',
+          options: ([
+            'Crinus Muto', // Opção correta
+            ...wrongOptionsSpell2]),
+          correctAnswer: 'Crinus Muto',
+          imageUrl: spells[2]?.type,
+        };
+
+        // Pergunta sobre casa em Gryffindor
+        const houseQuestion = {
+          question: `${characters[2].name} é da casa:`,
+          options: shuffleArray(['Gryffindor', 'Hufflepuff', 'Ravenclaw', 'Slytherin']),
+          correctAnswer: 'Gryffindor',
+          imageUrl: characters[2].image,
+        };
+
+        setQuestions([...quizQuestions, spellQuestion1, spellQuestion2, houseQuestion]);
         setLoading(false);
       } catch (error) {
         console.error('Erro ao buscar perguntas:', error);
@@ -87,6 +94,7 @@ const QuizScreen = () => {
   const currentQuestion = questions[questionIndex];
 
   const handleAnswer = (selectedAnswer) => {
+    // Lógica de resposta existente
     if (selectedAnswer === currentQuestion.correctAnswer) {
       setScore(score + 1);
       setShowSuccess(true);
@@ -104,6 +112,7 @@ const QuizScreen = () => {
   };
 
   const handleNextQuestion = () => {
+    // Lógica para avançar para a próxima pergunta existente
     setShowError(false);
     setShowSuccess(false);
 
@@ -115,6 +124,7 @@ const QuizScreen = () => {
   };
 
   const handleQuizFinished = () => {
+    // Lógica quando o quiz é finalizado existente
     setQuizFinished(true);
   };
 
