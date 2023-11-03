@@ -1,12 +1,13 @@
 // src/screens/HomeScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, Image, StyleSheet } from 'react-native';
+import { View, Text, Button, Image, StyleSheet, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const [characterImage, setCharacterImage] = useState(null);
+  const [userName, setUserName] = useState('');
 
   useEffect(() => {
     const fetchCharacterImage = async () => {
@@ -26,13 +27,26 @@ const HomeScreen = () => {
   }, []);
 
   const startQuiz = () => {
-    navigation.navigate('Quiz');
+    // Verifica se o nome do usuário foi inserido
+    if (userName.trim() === '') {
+      alert('Por favor, insira seu nome antes de iniciar o quiz.');
+      return;
+    }
+
+    // Você pode passar o nome do usuário para a tela do quiz
+    navigation.navigate('Quiz', { userName });
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Para iniciar o quiz, aperte no botão</Text>
       {characterImage && <Image source={{ uri: characterImage }} style={styles.characterImage} />}
+      <TextInput
+        style={styles.input}
+        placeholder="Digite seu nome"
+        value={userName}
+        onChangeText={(text) => setUserName(text)}
+      />
       <Button title="Iniciar Quiz" onPress={startQuiz} />
     </View>
   );
@@ -47,14 +61,22 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     marginBottom: 10,
-    color: 'red', // Cor vermelha
-    fontFamily: 'Arial', // Fonte diferente (ajuste conforme as fontes disponíveis)
+    color: 'red',
+    fontFamily: 'Arial',
   },
   characterImage: {
     width: 150,
     height: 150,
     borderRadius: 75,
     marginBottom: 20,
+  },
+  input: {
+    height: 40,
+    width: '80%',
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginBottom: 20,
+    padding: 10,
   },
 });
 
