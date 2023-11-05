@@ -3,7 +3,7 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 
-const QuizScreen = () => {
+const QuizScreen = ({ route }) => {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [questions, setQuestions] = useState([]);
@@ -11,7 +11,8 @@ const QuizScreen = () => {
   const [showError, setShowError] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [quizFinished, setQuizFinished] = useState(false);
-
+  const [ranking, setRanking] = useState([]);
+  const { userName } = route.params;
   const navigation = useNavigation();
 
   const shuffleArray = (array) => {
@@ -23,12 +24,18 @@ const QuizScreen = () => {
     return shuffledArray;
   };
 
+  const updateRanking = () => {
+    const updatedRanking = [...ranking, { name: userName, score }];
+    updatedRanking.sort((a, b) => b.score - a.score);
+    const trimmedRanking = updatedRanking.slice(0, 5);
+    setRanking(trimmedRanking);
+  };
+
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        // API de personagens
         const charactersResponse = await axios.get('https://hp-api.onrender.com/api/characters');
-        const characters = charactersResponse.data.slice(0, 4);
+        const characters = charactersResponse.data.slice(5, 15);
 
         const quizQuestions = characters.map((character, index) => {
           const incorrectOptions = characters
@@ -47,11 +54,9 @@ const QuizScreen = () => {
           };
         });
 
-        // API de feitiços
         const spellsResponse = await axios.get('https://hp-api.onrender.com/api/spells');
         const spells = spellsResponse.data.slice(0, 4);
 
-        // Pergunta sobre feitiços 1
         const wrongOptionsSpell1 = spells.filter((f) => f.name !== 'Aberto').slice(0, 3).map((f) => f.name);
         const spellQuestion1 = {
           question: 'Qual feitiço abre portas trancadas?',
@@ -62,7 +67,6 @@ const QuizScreen = () => {
           imageUrl: spells[0]?.type,
         };
 
-        // Pergunta sobre feitiços 2
         const wrongOptionsSpell2 = spells.filter((f) => f.name !== 'Crinus Muto').slice(0, 3).map((f) => f.name);
         const spellQuestion2 = {
           question: 'Qual feitiço muda o cabelo e o estilo?',
@@ -73,7 +77,6 @@ const QuizScreen = () => {
           imageUrl: spells[2]?.type,
         };
 
-        // Pergunta sobre casa em Gryffindor
         const houseQuestion = {
           question: `${characters[2].name} é da casa:`,
           options: shuffleArray(['Gryffindor', 'Hufflepuff', 'Ravenclaw', 'Slytherin']),
@@ -94,7 +97,6 @@ const QuizScreen = () => {
   const currentQuestion = questions[questionIndex];
 
   const handleAnswer = (selectedAnswer) => {
-    // Lógica de resposta existente
     if (selectedAnswer === currentQuestion.correctAnswer) {
       setScore(score + 1);
       setShowSuccess(true);
@@ -108,11 +110,11 @@ const QuizScreen = () => {
       setQuestionIndex(questionIndex + 1);
     } else {
       setQuizFinished(true);
+      updateRanking();
     }
   };
 
   const handleNextQuestion = () => {
-    // Lógica para avançar para a próxima pergunta existente
     setShowError(false);
     setShowSuccess(false);
 
@@ -120,16 +122,12 @@ const QuizScreen = () => {
       setQuestionIndex(questionIndex + 1);
     } else {
       setQuizFinished(true);
+      updateRanking();
     }
   };
 
-  const handleQuizFinished = () => {
-    // Lógica quando o quiz é finalizado existente
-    setQuizFinished(true);
-  };
-
   const handleShowResult = () => {
-    navigation.navigate('Resultado', { score });
+    navigation.navigate('Resultado', { score, ranking });
   };
 
   if (loading) {
