@@ -2,34 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
+import { AsyncStorage } from 'react-native';
+
 
 const QuizScreen = ({ route }) => {
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [score, setScore] = useState(0);
+  const [scorePlayer1, setScorePlayer1] = useState(0);
+  const [scorePlayer2, setScorePlayer2] = useState(0);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showError, setShowError] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [quizFinished, setQuizFinished] = useState(false);
   const [ranking, setRanking] = useState([]);
-  const { userName } = route.params;
+
+  const { userNamePlayer1, userNamePlayer2 } = route.params;
   const navigation = useNavigation();
-
-  const shuffleArray = (array) => {
-    const shuffledArray = [...array];
-    for (let i = shuffledArray.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
-    }
-    return shuffledArray;
-  };
-
-  const updateRanking = () => {
-    const updatedRanking = [...ranking, { name: userName, score }];
-    updatedRanking.sort((a, b) => b.score - a.score);
-    const trimmedRanking = updatedRanking.slice(0, 5);
-    setRanking(trimmedRanking);
-  };
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -44,7 +32,7 @@ const QuizScreen = ({ route }) => {
             .map((c) => c.name);
 
           const options = [character.name, ...incorrectOptions];
-          const shuffledOptions = shuffleArray(options);
+          const shuffledOptions = options.sort(() => Math.random() - 0.5);
 
           return {
             question: `Qual é o nome do personagem na imagem ${index + 1}?`,
@@ -57,34 +45,33 @@ const QuizScreen = ({ route }) => {
         const spellsResponse = await axios.get('https://hp-api.onrender.com/api/spells');
         const spells = spellsResponse.data.slice(0, 4);
 
-        const wrongOptionsSpell1 = spells.filter((f) => f.name !== 'Aberto').slice(0, 3).map((f) => f.name);
-        const spellQuestion1 = {
-          question: 'Qual feitiço abre portas trancadas?',
-          options: ([
-            'Aberto', // Opção correta
-            ...wrongOptionsSpell1]),
-          correctAnswer: 'Aberto',
-          imageUrl: spells[0]?.type,
-        };
+        const spellQuestions = spells.map((spell, index) => {
+          const incorrectOptions = spells
+            .filter((s) => s !== spell)
+            .slice(0, 3)
+            .map((s) => s.name);
 
-        const wrongOptionsSpell2 = spells.filter((f) => f.name !== 'Crinus Muto').slice(0, 3).map((f) => f.name);
-        const spellQuestion2 = {
-          question: 'Qual feitiço muda o cabelo e o estilo?',
-          options: ([
-            'Crinus Muto', // Opção correta
-            ...wrongOptionsSpell2]),
-          correctAnswer: 'Crinus Muto',
-          imageUrl: spells[2]?.type,
-        };
+          const options = [spell.name, ...incorrectOptions];
+          const shuffledOptions = options.sort(() => Math.random() - 0.5);
 
-        const houseQuestion = {
-          question: `${characters[2].name} é da casa:`,
-          options: shuffleArray(['Gryffindor', 'Hufflepuff', 'Ravenclaw', 'Slytherin']),
-          correctAnswer: 'Gryffindor',
-          imageUrl: characters[2].image,
-        };
+          return {
+            question: `Qual é o feitiço "${spell.name}" usado para?`,
+            options: shuffledOptions,
+            correctAnswer: spell.effect,
+            imageUrl: spell.type,
+          };
+        });
 
-        setQuestions([...quizQuestions, spellQuestion1, spellQuestion2, houseQuestion]);
+        const houseQuestions = characters.slice(5, 10).map((character) => {
+          return {
+            question: `${character.name} é da casa:`,
+            options: ['Gryffindor', 'Hufflepuff', 'Ravenclaw', 'Slytherin'],
+            correctAnswer: character.house,
+            imageUrl: character.image,
+          };
+        });
+
+        setQuestions([...quizQuestions, ...spellQuestions, ...houseQuestions]);
         setLoading(false);
       } catch (error) {
         console.error('Erro ao buscar perguntas:', error);
@@ -98,7 +85,12 @@ const QuizScreen = ({ route }) => {
 
   const handleAnswer = (selectedAnswer) => {
     if (selectedAnswer === currentQuestion.correctAnswer) {
-      setScore(score + 1);
+      if (questionIndex % 2 === 0) {
+        setScorePlayer1(scorePlayer1 + 1);
+      } else {
+        setScorePlayer2(scorePlayer2 + 1);
+      }
+
       setShowSuccess(true);
       setShowError(false);
     } else {
@@ -126,8 +118,19 @@ const QuizScreen = ({ route }) => {
     }
   };
 
+  const updateRanking = () => {
+    const updatedRanking = [
+      ...ranking,
+      { name: userNamePlayer1, score: scorePlayer1 },
+      { name: userNamePlayer2, score: scorePlayer2 }
+    ];
+    updatedRanking.sort((a, b) => b.score - a.score);
+    const trimmedRanking = updatedRanking.slice(0, 5);
+    setRanking(trimmedRanking);
+  };
+
   const handleShowResult = () => {
-    navigation.navigate('Resultado', { score, ranking });
+    navigation.navigate('Resultado', { scorePlayer1, scorePlayer2, ranking });
   };
 
   if (loading) {
@@ -171,7 +174,7 @@ const QuizScreen = ({ route }) => {
       {quizFinished && (
         <View style={styles.finishContainer}>
           <Text style={styles.finishText}>
-            Quiz finalizado! Você acertou {score} pergunta(s).
+            Quiz finalizado! {userNamePlayer1} acertou {scorePlayer1} pergunta(s), {userNamePlayer2} acertou {scorePlayer2} pergunta(s).
           </Text>
           <TouchableOpacity onPress={handleShowResult} style={styles.finishButton}>
             <Text style={styles.finishButtonText}>Ver Resultado</Text>

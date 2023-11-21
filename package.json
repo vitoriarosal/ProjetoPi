@@ -31,7 +31,8 @@
     "react-navigation-stack": "^2.10.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "sharp-cli": "^4.1.1"
   },
   "private": true
 }
