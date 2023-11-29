@@ -3,21 +3,10 @@ import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { FlatList } from 'react-native';
 
 const ResultadoScreen = ({ route, navigation }) => {
-  const { score, ranking } = route.params;
+  const { score, ranking, jogadores } = route.params;
 
-  const updatedRanking = ranking.reduce((acc, player) => {
-    const existingPlayer = acc.find((item) => item.name === player.name);
-    
-    if (existingPlayer) {
-      existingPlayer.score += player.score;
-    } else {
-      acc.push({ name: player.name, score: player.score });
-    }
 
-    return acc;
-  }, []);
-
-  const sortedRanking = updatedRanking.sort((a, b) => b.score - a.score);
+  const sortedRanking = ranking;
 
   const handleReiniciarQuiz = () => {
     // Reinicie o quiz configurando o estado para a tela de resultados
@@ -44,7 +33,7 @@ const ResultadoScreen = ({ route, navigation }) => {
           data={sortedRanking}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item, index }) => (
-            <Text style={styles.resultText}>{`${index + 1}. ${item.name || 'Desconhecido'}: ${item.score} pontos`}</Text>
+            <Text style={styles.resultText}>{`${index + 1}. ${item.nome || 'Desconhecido'}: ${item.pontos} pontos`}</Text>
           )}
         />
       ) : (

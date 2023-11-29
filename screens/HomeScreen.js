@@ -7,7 +7,7 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const [characterImage, setCharacterImage] = useState(null);
   const [userName, setUserName] = useState('');
-  const [userName2, setUserName2] = useState('');
+  const [jogadores, setJogadores] = useState([]);
 
   useEffect(() => {
     const fetchCharacterImage = async () => {
@@ -34,8 +34,8 @@ const HomeScreen = () => {
   
     console.log('Nome do Jogador:', userName);
   
-    // Passando o nome do usuário para a tela do quiz
-    navigation.navigate('Quiz', { userNamePlayer1: userName, userNamePlayer2: userName2 });
+    // Passei o nome do usuário para a tela do quiz
+    navigation.navigate('Quiz', { userNamePlayer1: userName, jogadores });
   };
 
   return (
@@ -47,15 +47,7 @@ const HomeScreen = () => {
         placeholder="Digite o nome do primeiro jogador"
         value={userName}
         onChangeText={(text) => setUserName(text)}
-      />
-      
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Digite o nome do segundo jogador"
-        value={userName2}
-        onChangeText={(text) => setUserName2(text)}
-      />      
+      />    
       <Button title="Iniciar Quiz" onPress={startQuiz} />
     </View>
   );

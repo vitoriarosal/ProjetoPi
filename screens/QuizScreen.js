@@ -2,21 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
-import { AsyncStorage } from 'react-native';
-
 
 const QuizScreen = ({ route }) => {
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [scorePlayer1, setScorePlayer1] = useState(0);
-  const [scorePlayer2, setScorePlayer2] = useState(0);
+  const [scorePlayer, setScorePlayer] = useState(0);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showError, setShowError] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [quizFinished, setQuizFinished] = useState(false);
   const [ranking, setRanking] = useState([]);
+  const [jogador, setJogador] = useState({ nome: '', pontos: 0 });
 
-  const { userNamePlayer1, userNamePlayer2 } = route.params;
+  const { userNamePlayer1, jogadores } = route.params;
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -43,26 +41,33 @@ const QuizScreen = ({ route }) => {
         });
 
         const spellsResponse = await axios.get('https://hp-api.onrender.com/api/spells');
+      
+        
+        opcoesFeiticos = ["Abre portas trancadas", "Invoca objetos", "Invoca agua", "Destrava objetos"]
         const spells = spellsResponse.data.slice(0, 4);
+        const feiticosTraduzidos = spells.map((spell, index) => {
+          return spell.description = opcoesFeiticos[index];
+        })
+        
 
         const spellQuestions = spells.map((spell, index) => {
           const incorrectOptions = spells
             .filter((s) => s !== spell)
             .slice(0, 3)
-            .map((s) => s.name);
+            .map((s) => s.description);
 
-          const options = [spell.name, ...incorrectOptions];
+          const options = [spell.description, ...incorrectOptions];
           const shuffledOptions = options.sort(() => Math.random() - 0.5);
 
           return {
-            question: `Qual é o feitiço "${spell.name}" usado para?`,
+            question: `O feitiço "${spell.name}" é usado para o que?`,
             options: shuffledOptions,
-            correctAnswer: spell.effect,
+            correctAnswer: spell.description,
             imageUrl: spell.type,
           };
         });
 
-        const houseQuestions = characters.slice(5, 10).map((character) => {
+        const houseQuestions = characters.slice(0, 3).map((character) => {
           return {
             question: `${character.name} é da casa:`,
             options: ['Gryffindor', 'Hufflepuff', 'Ravenclaw', 'Slytherin'],
@@ -85,12 +90,7 @@ const QuizScreen = ({ route }) => {
 
   const handleAnswer = (selectedAnswer) => {
     if (selectedAnswer === currentQuestion.correctAnswer) {
-      if (questionIndex % 2 === 0) {
-        setScorePlayer1(scorePlayer1 + 1);
-      } else {
-        setScorePlayer2(scorePlayer2 + 1);
-      }
-
+      setScorePlayer(scorePlayer + 1);
       setShowSuccess(true);
       setShowError(false);
     } else {
@@ -101,6 +101,9 @@ const QuizScreen = ({ route }) => {
     if (questionIndex + 1 < questions.length) {
       setQuestionIndex(questionIndex + 1);
     } else {
+      jogador.nome = userNamePlayer1;
+      jogador.pontos = scorePlayer;
+      jogadores.push(jogador);
       setQuizFinished(true);
       updateRanking();
     }
@@ -119,24 +122,31 @@ const QuizScreen = ({ route }) => {
   };
 
   const updateRanking = () => {
-    const updatedRanking = [
-      ...ranking,
-      { name: userNamePlayer1, score: scorePlayer1 },
-      { name: userNamePlayer2, score: scorePlayer2 }
-    ];
-    updatedRanking.sort((a, b) => b.score - a.score);
-    const trimmedRanking = updatedRanking.slice(0, 5);
-    setRanking(trimmedRanking);
+    jogadores.sort((a, b) => b.pontos - a.pontos);
+    setRanking([...jogadores]); // Copiando array para evitar mutação direta do estado
   };
 
   const handleShowResult = () => {
-    navigation.navigate('Resultado', { scorePlayer1, scorePlayer2, ranking });
+    navigation.navigate('Resultado', { scorePlayer, ranking, jogadores });
   };
 
   if (loading) {
     return (
       <View style={styles.container}>
         <Text>Carregando perguntas...</Text>
+      </View>
+    );
+  }
+
+  if (quizFinished) {
+    return (
+      <View style={styles.finishContainer}>
+        <Text style={styles.finishText}>
+          Quiz finalizado! {userNamePlayer1} acertou {scorePlayer} pergunta(s).
+        </Text>
+        <TouchableOpacity onPress={handleShowResult} style={styles.finishButton}>
+          <Text style={styles.finishButtonText}>Ver Resultado</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -158,12 +168,10 @@ const QuizScreen = ({ route }) => {
           </TouchableOpacity>
         ))}
       </View>
+
       {showError && (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Você errou!</Text>
-          <TouchableOpacity onPress={handleNextQuestion} style={styles.nextButton}>
-            <Text style={styles.nextButtonText}>Próxima Pergunta</Text>
-          </TouchableOpacity>
         </View>
       )}
       {showSuccess && (
@@ -171,16 +179,10 @@ const QuizScreen = ({ route }) => {
           <Text style={styles.successText}>Você acertou!</Text>
         </View>
       )}
-      {quizFinished && (
-        <View style={styles.finishContainer}>
-          <Text style={styles.finishText}>
-            Quiz finalizado! {userNamePlayer1} acertou {scorePlayer1} pergunta(s), {userNamePlayer2} acertou {scorePlayer2} pergunta(s).
-          </Text>
-          <TouchableOpacity onPress={handleShowResult} style={styles.finishButton}>
-            <Text style={styles.finishButtonText}>Ver Resultado</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+
+      <TouchableOpacity onPress={handleNextQuestion} style={styles.nextButton}>
+        <Text style={styles.nextButtonText}>Próxima Pergunta</Text>
+      </TouchableOpacity>
     </View>
   );
 };
