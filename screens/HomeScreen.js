@@ -28,7 +28,7 @@ const HomeScreen = () => {
 
   const startQuiz = () => {
     if (userName.trim() === '') {
-      alert('Por favor, insira seu nome antes de iniciar o quiz.');
+      alert('Por favor, insira seu nome antes de iniciar o quiz.'); 
       return;
     }
   
